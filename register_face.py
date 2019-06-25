@@ -3,11 +3,10 @@ from tkinter import messagebox
 import cv2
 import PIL
 import os
+from time import sleep
 from PIL import Image
 from PIL import ImageTk
 
-HEIGHT = 700
-WIDTH = 800
 SHOT_COUNT = 5
 DIRNAME = os.getcwd()+"/rawImages/"
 
@@ -78,48 +77,37 @@ class App:
         self.reset.grid(row = 0, column = 1)
 
         # call update after every delay
-        self.delay = 15
+        self.delay = 5
         self.update()
 
         self.window.mainloop()
+
+    def helper_create_directory(self, name):
+        # first check for outer directory
+        try:
+            os.mkdir(DIRNAME)
+        except FileExistsError:
+            pass
+        # check for inner directory
+        try:
+            os.mkdir(DIRNAME+"/"+name+"/")
+        except FileExistsError:
+            pass            
 
     def shot(self):
         if self.identry.get().strip() == "":
             print("Please Enter ID/Name")
             messagebox.showinfo("Error!", "Must enter ID/Name")
             return
-        directory = DIRNAME +"/"+ self.name
         self.name = self.identry.get().strip().replace(' ', '.')
-        if not os.path.exists(DIRNAME):
-            try:
-                os.mkdir(DIRNAME)
-            except FileExistsError:
-                pass
-            except:
-                raise ValueError("Unable to create image directory")
-                return
-            finally:
-                try:
-                    os.mkdir(directory)
-                except FileExistsError:
-                    pass
-                except:
-                    raise ValueError("Unable to create inner directory")
-                    return
-        if not os.path.exists(directory):
-            try:
-                os.mkdir(directory)
-            except FileExistsError:
-                pass
-            except:
-                raise ValueError("Unable to create inner directory")
-                return    
+        directory = DIRNAME +"/"+ self.name + "/"
+        self.helper_create_directory(self.name)
         r, img = self.vid.get_frame()
         if r:            
             print("Captured")
             self.identry.config(state = 'disabled')
             self.count.config(text = "Count = {}".format(self.cnt+1))
-            saveDir = directory+"/"+self.name+"."+str(self.cnt)+".jpg"
+            saveDir = directory+self.name+"."+str(self.cnt)+".jpg"
             cv2.imwrite(saveDir, img)
             self.cnt += 1
         else:
