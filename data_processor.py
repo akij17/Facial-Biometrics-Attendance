@@ -12,7 +12,7 @@ SHOT_COUNT = 5
 MODEL_PATH = os.getcwd()+"/faceData/faceData.csv"
 DATA_FILE = os.getcwd()+"/faceData/faceData.pkl"
 TRAIN_DIR = os.getcwd()+"/faceData/trained/trainedmodel.clf"
-IMAGES = os.getcwd()+"/faceData/rawImages/"
+IMAGES = os.getcwd()+"/rawImages/"
 
 def create_dataset():
     # check if file already exists
@@ -86,18 +86,8 @@ def train_model(k = None):
         print("Training Successful")
     except:
         print("Some error occured!")
-                
-while True:
-    print("=> Menu:")
-    print("1. Prepare dataset from images")
-    print("2. Train model")
-    print("3. Exit")
-    i = input("Enter your selection: ")
-    if i == str(1):
-        create_dataset()
-    elif i == str(2):
-        train_model()
-    elif i == str(3):
-        exit()
-    else:
-        pass
+
+def processdata():
+    create_dataset()
+    train_model()
+    exit()

@@ -33,6 +33,7 @@ class FaceCam:
 
     def __del__(self):
         if self.vid.isOpened():
+            cv2.destroyAllWindows()
             self.vid.release()
             exit()
         self.window.mainloop()
@@ -115,7 +116,10 @@ class App:
             return
 
     def reset(self):
-        pass
+        self.identry.config(state = 'normal')
+        self.identry.delete(0, len(self.identry.get()))
+        self.cnt = 0
+        self.count.config(text = "Count = {}".format(0))
 
     def update(self):
         # retrieve frame from video source
@@ -127,4 +131,5 @@ class App:
         self.window.after(self.delay, self.update)
 
 # create tkinter window and pass it to the App
-App(tkinter.Tk(), "Register Face")
+def register(video_source = 0):
+    App(tkinter.Toplevel(), "Register Face", video_source)
