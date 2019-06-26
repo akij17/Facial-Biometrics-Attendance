@@ -8,6 +8,8 @@ from PIL import Image
 from PIL import ImageTk
 
 SHOT_COUNT = 5
+CAMERA_LATENCY = 5
+HAARCASSCADE = os.getcwd()+"/"+"haarcascade_frontalface.xml"
 DIRNAME = os.getcwd()+"/rawImages/"
 
 class FaceCam:
@@ -16,6 +18,8 @@ class FaceCam:
         self.vid = cv2.VideoCapture(video_source)
         if not self.vid.isOpened():
             raise ValueError("Unable to open the camera")
+        
+        self.fd = cv2.CascadeClassifier(HAARCASSCADE)
 
         # get video source width and height
         self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -25,11 +29,22 @@ class FaceCam:
         if self.vid.isOpened():
             r, img = self.vid.read()
             if r:
-                return (r, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                g_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                o_img = img.copy()
+                f = self.fd.detectMultiScale(g_img)
+                try:
+                    (x, y, w, h) = f[0]
+                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
+                    return (r, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), o_img, True)
+                except IndexError:
+                    pass
+                except:
+                    pass
+                return (r, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), o_img, False)
             else:
-                return (r, None)
+                return (r, None, None, False)
         else:
-            return False, None
+            return (False, None, None, False)
 
     def __del__(self):
         if self.vid.isOpened():
@@ -78,7 +93,7 @@ class App:
         self.reset.grid(row = 0, column = 1)
 
         # call update after every delay
-        self.delay = 5
+        self.delay = CAMERA_LATENCY
         self.update()
 
         self.window.mainloop()
@@ -103,13 +118,16 @@ class App:
         self.name = self.identry.get().strip().replace(' ', '.')
         directory = DIRNAME +"/"+ self.name + "/"
         self.helper_create_directory(self.name)
-        r, img = self.vid.get_frame()
+        r, img, o_img, clickable = self.vid.get_frame()
+        if not clickable:
+            messagebox.showinfo("Error!", "Face not found")
+            return
         if r:            
             print("Captured")
             self.identry.config(state = 'disabled')
             self.count.config(text = "Count = {}".format(self.cnt+1))
             saveDir = directory+self.name+"."+str(self.cnt)+".jpg"
-            cv2.imwrite(saveDir, img)
+            cv2.imwrite(saveDir, o_img)
             self.cnt += 1
         else:
             raise ValueError("Camera not working")
@@ -123,7 +141,7 @@ class App:
 
     def update(self):
         # retrieve frame from video source
-        r, frame = self.vid.get_frame()
+        r, frame, o_img, clickable = self.vid.get_frame()
         if r:
             self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
             self.canvas.create_image(0, 0, image = self.photo, anchor = tkinter.NW)

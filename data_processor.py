@@ -14,6 +14,16 @@ DATA_FILE = os.getcwd()+"/faceData/faceData.pkl"
 TRAIN_DIR = os.getcwd()+"/faceData/trained/trainedmodel.clf"
 IMAGES = os.getcwd()+"/rawImages/"
 
+def helper_create_directory():
+    try:
+        os.mkdir(os.getcwd()+"/faceData/")
+    except FileExistsError:
+        pass
+    try:
+        os.mkdir(os.getcwd()+"/faceData/trained/")
+    except FileExistsError:
+        pass
+
 def create_dataset():
     # check if file already exists
     exists = os.path.exists(DATA_FILE) and os.path.isfile(DATA_FILE)
@@ -88,6 +98,6 @@ def train_model(k = None):
         print("Some error occured!")
 
 def processdata():
+    helper_create_directory()
     create_dataset()
     train_model()
-    exit()
