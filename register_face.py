@@ -6,6 +6,7 @@ import os
 from time import sleep
 from PIL import Image
 from PIL import ImageTk
+import face_recognition as fr
 
 SHOT_COUNT = 5
 CAMERA_LATENCY = 5

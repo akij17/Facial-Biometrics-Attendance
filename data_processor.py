@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import face_recognition as fr
 from sklearn import neighbors
+from sklearn.svm import SVC
 from ast import literal_eval as le
 
 SHOT_COUNT = 5
@@ -13,6 +14,7 @@ MODEL_PATH = os.getcwd()+"/faceData/faceData.csv"
 DATA_FILE = os.getcwd()+"/faceData/faceData.pkl"
 TRAIN_DIR = os.getcwd()+"/faceData/trained/trainedmodel.clf"
 IMAGES = os.getcwd()+"/rawImages/"
+CLASSIFIER = 'SVC'
 
 def helper_create_directory():
     try:
@@ -39,7 +41,7 @@ def create_dataset():
     features = []
     labels = []
     for person in os.listdir(IMAGES):
-        print("Processing images for "+person.replace('.', ' '))
+        print("[INFO] Processing images for "+person.replace('.', ' '))
         if person in oldentries:
             print(person.replace('.',' ')+" already exists in data.")
             continue
@@ -85,14 +87,19 @@ def train_model(k = None):
     if k == None:
         k = int(round(math.sqrt(len(O['enc']))))
     
-    # create and train KNN classifier
-    knn = neighbors.KNeighborsClassifier(n_neighbors = k, algorithm = 'ball_tree', weights = 'distance')
-    knn.fit(list(O['enc']), O['id'])
-
+    # create and train classifier
+    if CLASSIFIER == 'KNN':
+        print("[INFO] Training model: KNN")
+        knn = neighbors.KNeighborsClassifier(n_neighbors = k, algorithm = 'ball_tree', weights = 'distance')
+        knn.fit(list(O['enc']), O['id'])
+    else:
+        print("[INFO] Training model: SVC")
+        clf = SVC(C=1.0, gamma='scale', kernel='linear', probability = True)
+        clf.fit(list(O['enc']), O['id'])
     # saved the trained model
     try:
         with open(TRAIN_DIR, 'wb') as f:
-            pickle.dump(knn, f)
+            pickle.dump(clf, f)
         print("Training Successful")
     except:
         print("Some error occured!")
